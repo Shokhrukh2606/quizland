@@ -1,0 +1,5 @@
+ <ul>
+          {this.state.players.map((item, key)=> (
+            <li key={item.id}>{item.name}</li>
+          ))}
+        </ul>
