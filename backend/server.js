@@ -6,9 +6,13 @@ const app=express();
 const server=http.createServer(app);
 const io=socket(server);
 const nsp=io.of('/quizland');
+var information={
 
+}
 nsp.on('connection', socket=>{
 	console.log('new client connected');
+	
+//HOST functionalities
 	socket.on('createNewGame', data=>{
 		socket.join(data.gameId);
 		console.log(data.gameId);
@@ -16,6 +20,12 @@ nsp.on('connection', socket=>{
 			'gameId': data.gameId
 		});
 	});
+	socket.on('sendQuestion', data=>{
+		socket.to(data.gameId).emit('questionSent', {
+			question: data.question
+		});
+	});
+//PLAYER functionalities
 	socket.on('joinGame', data=>{
 		var existRoom=io.nsps['/quizland'].adapter.rooms[data.gameId];
 		if(existRoom!=='undefined'){

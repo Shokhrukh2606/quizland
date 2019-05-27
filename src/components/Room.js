@@ -9,9 +9,29 @@ export default class Room extends React.Component {
 		super(props);
 		this.state={
 			numOfPlayers: 0,
-			players: []
+			players: [],
+			currentQuestion: 0,
+			answers: ['A', 'B'],
+			quiz: {
+			"questions":
+				[
+					{
+					"question": "What is the capital of UZB?",
+					"answerA": "Tashkent",
+					"answerB": "Samarkand",
+					"answerC": "Bukhara",
+					"answerD": "Khorazm"
+					},
+					{
+					"question": "What is the capital of USA?",
+					"answerA": "Washington",
+					"answerB": "New York",
+					"answerC": "New Jersey",
+					"answerD": "Colorado"					
+					}
+				]	
+			}
 		}
-	
 	}
 	componentDidMount(){
 		console.log(this.state.players)
@@ -25,7 +45,13 @@ export default class Room extends React.Component {
 		this.setState({
   players: [...this.state.players, p]
 })
-
+	}
+	startGame=()=>{
+		console.log(this.state.quiz.questions[0]);
+		this.props.socket.emit('sendQuestion', {
+			question: this.state.quiz.questions[this.state.currentQuestion],
+			gameId: this.props.gameId
+		})
 	}
 	render() {
 		return (
@@ -45,7 +71,7 @@ export default class Room extends React.Component {
           ))}
         </ul>       	
             <p className="lead">
-              <MDBBtn color="success">Start</MDBBtn>
+              <MDBBtn color="success" onClick={this.startGame}>Start</MDBBtn>
             </p>
           </MDBJumbotron>
         </MDBCol>

@@ -1,5 +1,7 @@
 import React from 'react';
 import { MDBJumbotron, MDBBtn, MDBContainer, MDBRow, MDBCol, MDBCardTitle, MDBIcon } from "mdbreact";
+import Loader from './Loader';
+import QuestionBoard from './QuestionBoard';
 import client from 'socket.io-client';
 var socket;
 export default class Player extends React.Component {
@@ -9,7 +11,8 @@ export default class Player extends React.Component {
         this.state={
         	step: 'authentication', 
       		playerName: '',
-       		gameId: ''
+       		gameId: '',
+          question: ''
         }
         socket = client(this.props.endpoint);
     }
@@ -23,6 +26,21 @@ export default class Player extends React.Component {
     		gameId: this.state.gameId,
     		playerName: this.state.playerName
     	})
+      this.setState({
+        step: 'wait'
+      });
+    }
+    componentDidMount(){
+    socket.on('questionSent', data=>{
+      console.log(data)
+        this.setState({
+            step: 'questionCame',
+            question: data.question
+          });
+      })
+    }
+    questionAnswered=()=>{
+      console.log('Hooooo');
     }
     render() {
         return (
@@ -72,9 +90,11 @@ export default class Player extends React.Component {
           </form>
         </MDBCol>
       </MDBRow>
-    </MDBContainer>
+    </MDBContainer> :null}
 
-              :null}
+              {this.state.step==='wait'? <Loader />:null}
+              {this.state.step==='questionCame' ? <QuestionBoard question={this.state.question} setAnswer={this.questionAnswered}/>:null}
+
               </div>
         );
     }

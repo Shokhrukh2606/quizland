@@ -2,6 +2,7 @@ import React, { Fragment } from 'react';
 import client from 'socket.io-client';
 import Host from './Host';
 import Player from './Player';
+import QuestionBoard from './QuestionBoard';
 import { MDBContainer, MDBRow, MDBCol, MDBBtn, MDBInput } from "mdbreact";
 
 export default class Game extends React.Component {
@@ -43,6 +44,7 @@ export default class Game extends React.Component {
       
     </MDBContainer>:null}
     {this.state.clientType==='host'? <Host endpoint={this.state.endpoint} />:null}
+    {this.state.clientType==='h'? <QuestionBoard />:null}
     {this.state.clientType==='player'? <Player endpoint={this.state.endpoint} />:null}
     </div>
         );
