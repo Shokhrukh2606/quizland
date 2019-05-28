@@ -11,7 +11,7 @@ var information={
 }
 nsp.on('connection', socket=>{
 	console.log('new client connected');
-	
+
 //HOST functionalities
 	socket.on('createNewGame', data=>{
 		socket.join(data.gameId);
@@ -26,15 +26,26 @@ nsp.on('connection', socket=>{
 		});
 	});
 //PLAYER functionalities
-	socket.on('joinGame', data=>{
+	socket.on('joinGame',(data)=>{
 		var existRoom=io.nsps['/quizland'].adapter.rooms[data.gameId];
 		if(existRoom!=='undefined'){
 			socket.join(data.gameId);
 			socket.to(data.gameId).emit('playerJoined', {
-				'playerName': data.playerName
+				'playerName': data.playerName,
+				'gameId': data.gameId
+			})
+		}else{
+			socket.emit('err', {
+				info: 'There is no game with this CODE'
 			})
 		}
 	});
+	socket.on('questionAnswered', data=>{
+		socket.to(data.gameId).emit('questionResult',{
+        'playerName': data.playerName,
+        'correct': data.correct
+		});
+	})
 });
 server.listen(port, () => console.log(`Listening on port ${port}`));
 // function findClientsSocketByRoomId(roomId) {

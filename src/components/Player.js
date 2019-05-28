@@ -2,6 +2,8 @@ import React from 'react';
 import { MDBJumbotron, MDBBtn, MDBContainer, MDBRow, MDBCol, MDBCardTitle, MDBIcon } from "mdbreact";
 import Loader from './Loader';
 import QuestionBoard from './QuestionBoard';
+import ErrorHandler from './ErrorHandler';
+import PlayerAuthentication from './PlayerAuthentication';
 import client from 'socket.io-client';
 var socket;
 export default class Player extends React.Component {
@@ -12,16 +14,17 @@ export default class Player extends React.Component {
         	step: 'authentication', 
       		playerName: '',
        		gameId: '',
-          question: ''
+          correctAnswer: '',
+          error: ''
         }
         socket = client(this.props.endpoint);
     }
-    changeHandler=e=>{
+    authenticationChangeHandler=e=>{
     	this.setState({
     		[e.target.name]: e.target.value
     	});
     }
-    handleSubmit=e=>{
+    authenticationSubmitHandler=e=>{
     	socket.emit('joinGame', {
     		gameId: this.state.gameId,
     		playerName: this.state.playerName
@@ -35,65 +38,44 @@ export default class Player extends React.Component {
       console.log(data)
         this.setState({
             step: 'questionCame',
-            question: data.question
+            correctAnswer: data.answer
           });
       })
+    socket.on('err', data=>{
+      this.setState({
+        step: 'errorOccured',
+        error: data.info
+      })
+      console.log(data);
+      });
+    socket.on('playerJoined', data=>{
+      this.setState({
+        gameId: data.gameId
+      });
+    })
     }
-    questionAnswered=()=>{
-      console.log('Hooooo');
+    handleQuestionBoardClick=(e)=>{
+    if(e.currentTarget.value==this.state.correctAnswer){
+      socket.emit('questionAnswered', {
+        gameId: this.state.gameId,
+        correct: true
+      })
     }
+    else{
+      socket.emit('questionAnswered', {
+        gameId: this.state.gameId,
+        playerName: this.state.playerName,
+        correct: false
+      })
+    }
+  }
     render() {
         return (
         	<div>
-              { this.state.step==='authentication'? 
-
-              	   <MDBContainer>
-      <MDBRow>
-        <MDBCol md="6">
-          <form>
-            <p className="h4 text-center py-4">Join game by entering game code</p>
-            <label
-              htmlFor="gameId"
-              className="grey-text font-weight-light"
-            >
-              Game code
-            </label>
-            <input
-              type="text"
-              id="gameId"
-              name="gameId"
-              value={this.state.gameId}
-              onChange={this.changeHandler}
-              className="form-control"
-            />
-            <br />
-            <label
-              htmlFor="playerName"
-              className="grey-text font-weight-light"
-            >
-              Your name
-            </label>
-            <input
-              type="text"
-              id="playerName"
-         	  name="playerName"	
-         	  value={this.state.playerName}
-         	  onChange={this.changeHandler}
-              className="form-control"
-            />
-            <div className="text-center py-4 mt-3">
-              <MDBBtn className="btn btn-outline-purple" type="button" onClick={this.handleSubmit}>
-                Join
-                <MDBIcon far icon="paper-plane" className="ml-2" />
-              </MDBBtn>
-            </div>
-          </form>
-        </MDBCol>
-      </MDBRow>
-    </MDBContainer> :null}
-
+              { this.state.step==='authentication'? <PlayerAuthentication gameId={this.state.gameId} changeHandler={this.authenticationChangeHandler} submitHandler={this.authenticationSubmitHandler} /> : null}
               {this.state.step==='wait'? <Loader />:null}
-              {this.state.step==='questionCame' ? <QuestionBoard question={this.state.question} setAnswer={this.questionAnswered}/>:null}
+              {this.state.step==='questionCame' ? <QuestionBoard handleClick={this.handleQuestionBoardClick}/>:null}
+              {this.state.step==='errorOccured' ? <ErrorHandler info={this.state.error} />:null}
 
               </div>
         );
